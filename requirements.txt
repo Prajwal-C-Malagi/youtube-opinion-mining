@@ -4,3 +4,4 @@ pandas
 matplotlib
 transformers
 torch
+groq
