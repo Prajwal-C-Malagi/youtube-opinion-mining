@@ -262,15 +262,17 @@ if search_query:
                             clean_text)
 
                         # Prepare comments for the LLM (truncating extremely long ones to save tokens)
+                        valid_mask = processed_df['Cleaned_Comment'].apply(lambda c: bool(c.strip()))
                         comment_list = [
-                            c[:500] for c in processed_df['Cleaned_Comment'].tolist() if c.strip()]
+                            c[:500] for c in processed_df.loc[valid_mask, 'Cleaned_Comment'].tolist()]
 
+                        # Default all to Neutral, then overwrite valid ones
+                        processed_df['Sentiment'] = 'Neutral'
                         if comment_list:
                             # NEW GROQ INFERENCE ENGINE
-                            processed_df['Sentiment'] = analyze_sentiments_with_groq(
+                            sentiments = analyze_sentiments_with_groq(
                                 comment_list, groq_client)
-                        else:
-                            processed_df['Sentiment'] = 'Neutral'
+                            processed_df.loc[valid_mask, 'Sentiment'] = sentiments
 
                         st.session_state.df = processed_df
                         st.session_state.report_generated = True
